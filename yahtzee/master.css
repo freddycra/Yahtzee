@@ -1,0 +1,32 @@
+/* clases usadas de boostrap
+table
+table-sm
+table-dark
+table-borderless
+bg-primary
+bd-danger
+bg-warning
+text-light
+btn
+btn-primary
+ */
+
+body{
+  background: #939eaf;
+}
+
+.operario_par2 {
+  position: relative;
+  top: 0px;
+  width: 170px;
+  background-color:#E6E0F8;
+  border: solid 1px #CCD1D7;
+}
+
+.operario_impar2 {
+  position: relative;
+  top: 0px;
+  width: 170px;
+  background-color:#D8CEF6;
+  border: solid 1px #E8EBED;
+}

@@ -1,0 +1,10 @@
+-Hacer el insert en la base de datos al presionar el boton nuevo (tambien se de
+beria pedir el nombre en esa ocacion?)
+
+-Revisar funcion de x_iugales (con numero 6)
+
+-Calculo de total y subtotal
+
+-Reanudar juego con los records
+
+-Calcular Bonus
