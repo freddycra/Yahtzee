@@ -28,3 +28,4 @@ CREATE TABLE juegos(
 );
 
 -- INSERT INTO JUEGOS VALUES(0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0,"yo");
+select * from juegos;

@@ -9,8 +9,6 @@
 <?php
 
 
-//$dices = [3,2,3,4,5]; //Para forzar las jugadas que se quieren probar
-//Se inicializan las estrellas y los lanzamientos en 0
 $lanzamientos = 0;
 $estrellas = 0;
 $nuevo = 0;
@@ -44,7 +42,8 @@ $jugada11 = -1;
 $jugada12 = -1;
 $jugada13 = -1;
 
-$primerClic = -1;
+$primerClick = 1;
+$registro = 0;
 
 //INICIO DE LA CONFIGURACIÓN PARA LA BASE DE DATOS
 // Create connection
@@ -58,13 +57,21 @@ if ($conn->connect_error) {
 //SE EXTRAEN LOS DATOS QUE LLEGAN POR POST Y GET
 extract($_POST);     //Obtiene los valores pasados por el formulario
 extract($_GET);     //Obtiene los valores pasados por el link
-//guardarJugadas(); Métodos que valora el atributo jugadaValidada, lo asigna a la correspondiente variable, se manda a la base de datos, luego las recupera y actualiza el valor
 
 $jugadas = [$jugada1,$jugada2,$jugada3,$jugada4,$jugada5,$jugada6,$jugada7,$jugada8,$jugada9,$jugada10,$jugada11,$jugada12,$jugada13];
 
+if($registro != 0){
+  echo "<br><br> recuperando registro $registro <br><br>";
+  $sql = "UPDATE auxiliar SET juegoActual = $registro";
+  if (!mysqli_query($conn, $sql)) {
+    echo "Error: " . $sql . "<br>" . mysqli_error($conn);
+  }
+  $numeroJugada = $registro;
+  $registro = 0;
+}
 
 //SE SELECCIONAN DE LA BASE DE DATOS EL ID, LANZAMIENTOS Y TOTAL
-$sql = "SELECT id, lanzamientos, total FROM juegos";
+$sql = "SELECT DISTINCT id, lanzamientos FROM juegos WHERE id = (SELECT MAX(id) FROM juegos)";
 $result = $conn->query($sql);
 
 
@@ -72,56 +79,58 @@ $result = $conn->query($sql);
 if ($result->num_rows > 0) {
    // output data of each row
    while($row = $result->fetch_assoc()) {
-       $aux = $row["id"];//Busca el id actual
-       if($numeroJugada>$row["id"]){
-         $numeroJugada = $aux + 1;
-         $sql = "UPDATE juegos ". "SET id = $numeroJugada, lanzamientos = 0 ".
-                        "WHERE id = $aux ";
-         if (mysqli_query($conn, $sql)) {
-               //echo "\nRecord actualizado correctamente jojojo";
-         } else {
-               echo "Error: " . $sql . "<br>" . mysqli_error($conn);
-         }
-       }else{
-         $numeroJugada = $row["id"];
-         if($boton==0){
-           $lanzamientos = $row["lanzamientos"];
-         }else{
-           $lanzamientos = 0;
-         }
+     if($primerClick == 0){
+       $numeroJugada = $row["id"] + 1;
+       echo "ESTOY AQUI PUES PRIMERCLICK = $primerClick Y AHORA NUMERO JUGADA = $numeroJugada";
+       $primerClick = 1;
+     }
+     $aux = $row["id"];//Busca el id actual
+     if($numeroJugada>$aux){
+       $numeroJugada = $aux + 1;
+       $sql = "INSERT INTO juegos ". "VALUES ($numeroJugada, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0 ,\"desconocido\")";
+       if (!mysqli_query($conn, $sql)) {
+         echo "Error: " . $sql . "<br>" . mysqli_error($conn);
        }
 
-       //Se actualizan el número de jugada y los lanzamientos
+       $sql = "UPDATE auxiliar SET juegoActual = $numeroJugada";
+       if (!mysqli_query($conn, $sql)) {
+         echo "Error: " . $sql . "<br>" . mysqli_error($conn);
+       }else{
+         echo "se actualizo el valor a $numeroJugada"; //esta linea se debe borrar cuando se confirme que funciona
+       }
+     }else{
+       $show = mysqli_query($conn, "SELECT juegoActual FROM auxiliar limit 1");
+       $row = mysqli_fetch_assoc($show);
+       $numeroJugada = $row["juegoActual"];
+       $show = mysqli_query($conn, "SELECT lanzamientos FROM juegos WHERE id=$numeroJugada limit 1");
+       $row = mysqli_fetch_assoc($show);
+       $lanzamientos = $boton==0?$row['lanzamientos']:0;
+       echo "La jugada se recupero y es $numeroJugada";
+     }
+     //Se actualizan el número de jugada y los lanzamientos
    }
-} else {
+ } else {
    echo "0 results";
-}
+ }
 
-if($primerClic==0){
-  echo("Este es un juego nuevo");
-  echo("Id del juego: ".$numeroJugada);
-  //Poner la base en estado nuevo
-  $sql = "UPDATE juegos ". "SET lanzamientos = 0, dado1 = 0, dado2 = 0, dado3 = 0, dado4 = 0, dado5 = 0, jugada1 = -1, jugada2 = -1, jugada3 = -1, jugada4 = -1, jugada5 = -1, jugada6 = -1, jugada7 = -1, jugada8 = -1, jugada9 = -1, jugada10 = -1, jugada11 = -1, jugada12 = -1, jugada13 = -1, total = 0 ".
-                 "WHERE id = $numeroJugada" ;
-  $primerClic = -1;
-}
 guardarJugadas();//Guarda las nuevas jugadas en la base
 leerJugadas();//Actualiza las jugadas, trayéndolas desde la base
 
 
 //SE IMPRIMEN EN PANTALLA EL ID Y EL NUMERO DE LANZAMIENTOS
-echo("Id: ".$numeroJugada);
-echo("\nLanzamientos: ".$lanzamientos);
-echo("\nDado0: ".$dado0);
-echo("\nDado1: ".$dado1);
-echo("\nDado2: ".$dado2);
-echo("\nDado3: ".$dado3);
-echo("\nDado4: ".$dado4);
+echo("<br> Id: ".$numeroJugada);
+echo("<br> \nLanzamientos: ".$lanzamientos);
+echo("<br> \nDado0: ".$dado0);
+echo("<br> \nDado1: ".$dado1);
+echo("<br> \nDado2: ".$dado2);
+echo("<br> \nDado3: ".$dado3);
+echo("<br> \nDado4: ".$dado4);
+
 
 function leerJugadas(){
   global $nuevo, $jugadaValidada, $jugada1,$jugada2,$jugada3,$jugada4,$jugada5,$jugada6,$jugada7,$jugada8,$jugada9,$jugada10,$jugada11,$jugada12,$jugada13, $valorJugado, $conn, $sql, $numeroJugada;
 
-  $sql = "SELECT jugada1, jugada2, jugada3, jugada4, jugada5, jugada6, jugada7, jugada8, jugada9, jugada10, jugada11, jugada12, jugada13 FROM juegos";
+  $sql = "SELECT jugada1, jugada2, jugada3, jugada4, jugada5, jugada6, jugada7, jugada8, jugada9, jugada10, jugada11, jugada12, jugada13 FROM juegos WHERE id=$numeroJugada";
   $result = $conn->query($sql);
 
 
@@ -143,7 +152,7 @@ function leerJugadas(){
        $jugada12 = $row["jugada12"];
        $jugada13 = $row["jugada13"];
      }
-     echo("Valor de nuevo: ".$nuevo);
+     echo("<br> Valor de nuevo: ".$nuevo);
   } else {
      echo "0 results";
   }
@@ -156,14 +165,13 @@ function guardarJugadas(){
   $aux = $jugadaValidada+1;
   if($jugadaValidada<13){
     $sql = "UPDATE juegos ". "SET jugada".$aux." = $jugadas[$jugadaValidada] "."WHERE id = $numeroJugada" ;
-    echo "UPDATE juegos ". "SET jugada".$aux." = $jugadas[$jugadaValidada] "."WHERE id = $numeroJugada" ;
+    if (mysqli_query($conn, $sql)) {
+      //echo "Record actualizado correctamente";
+    } else {
+      echo "Error: " . $sql . "<br>" . mysqli_error($conn);
+    }
   }
 
-    if (mysqli_query($conn, $sql)) {
-          //echo "Record actualizado correctamente";
-    } else {
-          echo "Error: " . $sql . "<br>" . mysqli_error($conn);
-    }
 }
 
 function lanzarDados(){
@@ -172,7 +180,7 @@ function lanzarDados(){
   for ($i=0; $i<5; $i++) {
     $dices[$i] = $dados[$i]!=0? $dados[$i]:rand(1,6);
   }
-
+  // $dices = [6,1,1,2,6];
   return $dices;
 }
 
@@ -287,6 +295,9 @@ function MuestraJuego(){
     echo("<input type='submit' value='Enviar'>");
     echo("</form>");
   }
+
+  echo "<button class='btn btn-warning'><A class='text-dark' HREF='registros.php'>Registros</A></button>";
+
 }
 
 muestraJuego();
@@ -364,7 +375,7 @@ $lanzamientos = $lanzamientos + 1;
     echo "<center><input class='btn btn-primary' type=submit name=lanzar value=Lanzar></center><BR>\n";}
 
   //Se imprime en pantalla el botón de Nuevo
-  echo "<center><A HREF=index.php?nuevo=0&numeroJugada=$var&lanzamientos=0&primerClic=0><button class='btn btn-primary' type='button'>Nuevo</button></a></center><BR>\n";//Siempre va a imprimirse
+  echo "<center><A HREF=index.php?nuevo=0&numeroJugada=$var&lanzamientos=0&primerClick=0><button class='btn btn-primary' type='button'>Nuevo</button></a></center><BR>\n";//Siempre va a imprimirse
 	echo "</form>";
 
 }
@@ -393,14 +404,15 @@ function lanzarVector($vector){
 //DE ACÁ EN ADELANTE SE DECLARAN LOS MÉTODOS DEL JUEGO
 
 
-function full_House($vector) { //XXXYY o XXYYY 25 puntos
-    sort($vector);
-    if((($vector[0] === $vector[1]) and ($vector[1] === $vector[2])) || (($vector[2] === $vector[3]) and ($vector[3] === $vector[4]))){
+function full_House($array) { //XXXYY o XXYYY 25 puntos
+  sort($array);
+  $aux = array_count_values($array);
+  for($i=1;$i<=6;$i++){
+    if(isset($aux[$i]) && count($aux)==2 && ($aux[0]=2 && $aux[5]=3 || $aux[0]=3 && $aux[5]=2)){
       return 25;
-    }else{
-      return 0;
     }
-
+  }
+  return 0;
 }
 
 function yahtzee($vector) { //devuelve 50 puntos si todos los valores son iguales
@@ -431,9 +443,9 @@ function escalera_larga($array) { //Cinco valores en secuencia 40 puntos
     // 1) 1 2 3 4 5  2) 2 3 4 5 6
     sort ($array);
     $s = true;
-    for($i=0; $i<(count($array)-1); $i++)
+    for($i=0; $i<count($array)-1; $i++)
     {
-      $s = $array[$i] + 1 === $array[$i+1];
+      $s = $array[$i] + 1 == $array[$i+1];
     }
     return $s ? 40 : 0;
 }
@@ -446,17 +458,6 @@ function iguales($array, $num) {
      $sum = $sum + $array[$i];
   }
   return $sum;
-}
-
-function num_iguales($array, $num){
-  $cont=0;
-  for($i=0; $i<count($array); $i++)
-  {
-    if($array[$i]==$num){
-      $cont++;
-    }
-  }
-  return $cont;
 }
 
 function x_iguales($array, $num) { //n = 3 o n = 4
