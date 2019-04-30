@@ -8,39 +8,13 @@
 
 <?php
 
-
-$lanzamientos = 0;
-$estrellas = 0;
-$nuevo = 0;
-$numeroJugada = 0;
-$boton = 0;
-
-$dado0 = 0;
-$dado1 = 0;
-$dado2 = 0;
-$dado3 = 0;
-$dado4 = 0;
-
 $servername = "localhost";
 $username = "root";
 $password = "root";
 $dbname = "yahtzee";
 $jugadaValidada = 14; //jugada a la que acaba de hacer clic
-$valorJugado = 0; //valor que tenía esa jugada
-
-$jugada1 = -1;
-$jugada2 = -1;
-$jugada3 = -1;
-$jugada4 = -1;
-$jugada5 = -1;
-$jugada6 = -1;
-$jugada7 = -1;
-$jugada8 = -1;
-$jugada9 = -1;
-$jugada10 = -1;
-$jugada11 = -1;
-$jugada12 = -1;
-$jugada13 = -1;
+$valorJugado = $lanzamientos = $estrellas = $nuevo = $numeroJugada = $boton = $dado0 = $dado1 = $dado2 = $dado3 = $dado4 = 0;
+$jugada1 = $jugada2 = $jugada3 = $jugada4 = $jugada5 = $jugada6 = $jugada7 = $jugada8 = $jugada9 = $jugada10 = $jugada11 = $jugada12 = $jugada13 = -1;
 
 $primerClick = 1;
 $registro = 0;
@@ -81,7 +55,6 @@ if ($result->num_rows > 0) {
    while($row = $result->fetch_assoc()) {
      if($primerClick == 0){
        $numeroJugada = $row["id"] + 1;
-       echo "ESTOY AQUI PUES PRIMERCLICK = $primerClick Y AHORA NUMERO JUGADA = $numeroJugada";
        $primerClick = 1;
      }
      $aux = $row["id"];//Busca el id actual
@@ -92,11 +65,8 @@ if ($result->num_rows > 0) {
          echo "Error: " . $sql . "<br>" . mysqli_error($conn);
        }
 
-       $sql = "UPDATE auxiliar SET juegoActual = $numeroJugada";
-       if (!mysqli_query($conn, $sql)) {
+       if (!mysqli_query($conn, "UPDATE auxiliar SET juegoActual = $numeroJugada")) {
          echo "Error: " . $sql . "<br>" . mysqli_error($conn);
-       }else{
-         echo "se actualizo el valor a $numeroJugada"; //esta linea se debe borrar cuando se confirme que funciona
        }
      }else{
        $show = mysqli_query($conn, "SELECT juegoActual FROM auxiliar limit 1");
@@ -105,7 +75,6 @@ if ($result->num_rows > 0) {
        $show = mysqli_query($conn, "SELECT lanzamientos FROM juegos WHERE id=$numeroJugada limit 1");
        $row = mysqli_fetch_assoc($show);
        $lanzamientos = $boton==0?$row['lanzamientos']:0;
-       echo "La jugada se recupero y es $numeroJugada";
      }
      //Se actualizan el número de jugada y los lanzamientos
    }
@@ -113,18 +82,18 @@ if ($result->num_rows > 0) {
    echo "0 results";
  }
 
-guardarJugadas();//Guarda las nuevas jugadas en la base
-leerJugadas();//Actualiza las jugadas, trayéndolas desde la base
+guardarJugadas();
+leerJugadas();
 
 
 //SE IMPRIMEN EN PANTALLA EL ID Y EL NUMERO DE LANZAMIENTOS
-echo("<br> Id: ".$numeroJugada);
-echo("<br> \nLanzamientos: ".$lanzamientos);
-echo("<br> \nDado0: ".$dado0);
-echo("<br> \nDado1: ".$dado1);
-echo("<br> \nDado2: ".$dado2);
-echo("<br> \nDado3: ".$dado3);
-echo("<br> \nDado4: ".$dado4);
+// echo("<br> Id: ".$numeroJugada);
+// echo("<br> \nLanzamientos: ".$lanzamientos);
+// echo("<br> \nDado0: ".$dado0);
+// echo("<br> \nDado1: ".$dado1);
+// echo("<br> \nDado2: ".$dado2);
+// echo("<br> \nDado3: ".$dado3);
+// echo("<br> \nDado4: ".$dado4);
 
 
 function leerJugadas(){
@@ -152,9 +121,6 @@ function leerJugadas(){
        $jugada12 = $row["jugada12"];
        $jugada13 = $row["jugada13"];
      }
-     echo("<br> Valor de nuevo: ".$nuevo);
-  } else {
-     echo "0 results";
   }
 }
 
@@ -165,9 +131,7 @@ function guardarJugadas(){
   $aux = $jugadaValidada+1;
   if($jugadaValidada<13){
     $sql = "UPDATE juegos ". "SET jugada".$aux." = $jugadas[$jugadaValidada] "."WHERE id = $numeroJugada" ;
-    if (mysqli_query($conn, $sql)) {
-      //echo "Record actualizado correctamente";
-    } else {
+    if (!mysqli_query($conn, $sql)) {
       echo "Error: " . $sql . "<br>" . mysqli_error($conn);
     }
   }
@@ -175,16 +139,15 @@ function guardarJugadas(){
 }
 
 function lanzarDados(){
-  global $dado0, $dado1, $dado2, $dado3, $dado4, $conn, $sql;
+  global $dado0, $dado1, $dado2, $dado3, $dado4;
   $dados = [$dado0, $dado1, $dado2, $dado3, $dado4];
   for ($i=0; $i<5; $i++) {
     $dices[$i] = $dados[$i]!=0? $dados[$i]:rand(1,6);
   }
-  // $dices = [6,1,1,2,6];
+   // $dices = [6,2,3,4,5];
   return $dices;
 }
 
-//ESTA FUNCIÓN MUESTRA EL JUEGO EN LA PANTALLA
 function MuestraJuego(){
   global $lanzamientos, $nuevo,$jugada1,$jugada2,$jugada3,$jugada4,$jugada5,$jugada6,$jugada7,$jugada8,$jugada9,$jugada10,$jugada11,$jugada12,$jugada13, $result, $sql, $conn, $numeroJugada;
 
@@ -232,14 +195,13 @@ function MuestraJuego(){
        while($row = $result->fetch_assoc()) {
            $subTotal = $row["subTotal"];
        }
-    } else {
-       echo "0 results";
     }
-    // $subTotal = array_sum(array_filter(array_slice($jugadas,0,6),function($x){ return $x>0;}));
+
+    $bonus = $subTotal>=63?35:0;
 
     if($i==5){
       echo "<TR class='bg-danger'>\n<TD>\n<p>Total</TD>\n<TD>\n$subTotal</p>\n</TD>\n</TR>\n";
-    	echo "<TR class='bg-danger'>\n<TD>\n<p>Bonus</TD>\n<TD>\n0</p>\n</TD>\n</TR>\n";
+    	echo "<TR class='bg-danger'>\n<TD>\n<p>Bonus</TD>\n<TD>\n$bonus</p>\n</TD>\n</TR>\n";
     }
 	}
 
@@ -249,13 +211,14 @@ function MuestraJuego(){
   $total = 0;
   if ($result->num_rows > 0) {
      while($row = $result->fetch_assoc()) {
-         $total = $row["total"];
+         $total = $row["total"]+$bonus;
      }
-  } else {
-     echo "0 results";
   }
 
-  // $total = array_sum(array_filter($jugadas,function($x){return $x>0;}));
+  $sql = "UPDATE juegos ". "SET total = $total  WHERE id = $numeroJugada" ;
+  if (!mysqli_query($conn, $sql)) {
+    echo "Error: " . $sql . "<br>" . mysqli_error($conn);
+  }
 
   echo "<TR class='bg-danger'>\n<TD>\n<p>Total</TD>\n<TD>\n$total</p>\n</TD>\n</TR>\n";
 	echo "</table></p>\n";
@@ -283,8 +246,6 @@ function MuestraJuego(){
      while($row = $result->fetch_assoc()) {
          $neg = $row["negativos"];
      }
-  } else {
-     echo "0 results";
   }
 
   if($neg==0){
@@ -357,16 +318,10 @@ function muestra_vector($vector) {
   $var = $numeroJugada + 1;
 	echo "</TR></table></p>\n";
 
-
-//Inserto datos en la base
-//Se actualiza el dato de lanzamientos en la base de datos
 $lanzamientos = $lanzamientos + 1;
-  $sql = "UPDATE juegos ". "SET lanzamientos = $lanzamientos ".
-                 "WHERE id = $numeroJugada" ;
 
-  if (mysqli_query($conn, $sql)) {
-        //echo "Record actualizado correctamente";
-  } else {
+  if (!mysqli_query($conn, "UPDATE juegos ". "SET lanzamientos = $lanzamientos ".
+                 "WHERE id = $numeroJugada")) {
         echo "Error: " . $sql . "<br>" . mysqli_error($conn);
   }
 
@@ -401,9 +356,7 @@ function lanzarVector($vector){
 }
 
 
-//DE ACÁ EN ADELANTE SE DECLARAN LOS MÉTODOS DEL JUEGO
-
-
+//MÉTODOS DEL JUEGO
 function full_House($array) { //XXXYY o XXYYY 25 puntos
   sort($array);
   $aux = array_count_values($array);
@@ -432,11 +385,13 @@ function chance($vector) { //devuelve la suma de los 5 valores
 
 function escalera_corta($vector) { //Cuatro valores en secuencia 30 puntos
   sort ($vector);
-  $a = 1;
-  for($i=0; $i<(count($vector)-1); $i++){
-    if(($vector[$i]+1) === $vector[$i+1]){$a = $a + 1;}
-    if ($a === 4) {return "30";}}
-  return "0";
+  $c = 1;
+  for($i=0; $i<count($vector)-1; $i++){
+    if($vector[$i]+1 == $vector[$i+1]){
+      $c = $c + 1;
+    }
+  }
+  return $c >= 4 ? 30:0;
 }
 
 function escalera_larga($array) { //Cinco valores en secuencia 40 puntos
@@ -445,9 +400,9 @@ function escalera_larga($array) { //Cinco valores en secuencia 40 puntos
     $s = true;
     for($i=0; $i<count($array)-1; $i++)
     {
-      $s = $array[$i] + 1 == $array[$i+1];
+      $s = $s && $array[$i] + 1 == $array[$i+1];
     }
-    return $s ? 40 : 0;
+    return  $s ? 40 : 0;
 }
 
 function iguales($array, $num) {

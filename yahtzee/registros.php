@@ -8,7 +8,7 @@
   <body>
 <?php
     $conn = new mysqli("localhost", "root", "root", "yahtzee");
-    $sql = "SELECT id,lanzamientos, jugada1, jugada2,jugada3,jugada4,jugada5,jugada6,jugada7,jugada8,jugada9,jugada10,jugada11,jugada12,jugada13, total, jugador FROM juegos";
+    $sql = "SELECT id,lanzamientos, jugada1, jugada2,jugada3,jugada4,jugada5,jugada6,jugada7,jugada8,jugada9,jugada10,jugada11,jugada12,jugada13,total, jugador FROM juegos";
     $result = $conn->query($sql);
 
 
